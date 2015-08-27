@@ -14,9 +14,14 @@ class Document():
     def __init__(self, node):
         self.node = node
         self.definitions = []
+        self.fragments = {}
 
     def add_definition(self, definition):
         self.definitions.append(definition)
+    
+    def add_fragment(self, frag_name, frag):
+        self.definitions.append(frag)
+        self.fragments[frag_name] = frag
 
 class Definition():
     def __init__(self, node, parent):
@@ -82,13 +87,12 @@ class Field(Selection):
 
 
 class Fragment(Selection):
-    def __init__(self, node, parent):
+    def __init__(self, node):
         self.node = node
         # self.name = name
         # self.directives = directives
         # self.type_condition = type_condition
         # self.selection_set = selection_set
-        parent.add_definition(self)
 
 class Variable(Definition):
     def __init__(self, node, parent):
@@ -196,21 +200,29 @@ class Parser():
         #self.end_visit_node()
 
     def process_visit_inline_fragment(self, node, unused):
+        frag = Fragment(node)
+        self._nodes[-1].add_field(frag)
+        self.visit_node(frag)
         return True
 
     def process_end_visit_inline_fragment(self, node, unused):
         condition = GraphQLAstInlineFragment_get_type_condition(node)
-        directives = GraphQLAstInlineFragment_get_directives_size(node)
-        selection_set = GraphQLAstInlineFragment_get_selection_set(node)
+        condition_name = GraphQLAstNamedType_get_name(condition)
+        self._nodes[-1].condition = str(GraphQLAstName_get_value(condition_name))
+        self._nodes[-1].directives_size = GraphQLAstInlineFragment_get_directives_size(node)
+        #selection_set = GraphQLAstInlineFragment_get_selection_set(node)
+        self.end_visit_node()
         pass
 
     def process_visit_fragment_definition(self, node, unused):
-        self.visit_node(Fragment(node, self._nodes[-1]))
+        frag = Fragment(node)
+        name = GraphQLAstFragmentDefinition_get_name(node)
+        frag.name = str(GraphQLAstName_get_value(name))
+        self._nodes[-1].add_fragment(frag.name, frag)
+        self.visit_node(frag)
         return True
 
     def process_end_visit_fragment_definition(self, node, unused):
-        name = GraphQLAstFragmentDefinition_get_name(node)
-        self._nodes[-1].name = str(GraphQLAstName_get_value(name))
         condition = GraphQLAstFragmentDefinition_get_type_condition(node)
         condition_name = GraphQLAstNamedType_get_name(condition)
         self._nodes[-1].condition = str(GraphQLAstName_get_value(condition_name))
