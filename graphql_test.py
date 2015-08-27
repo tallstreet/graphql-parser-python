@@ -1,5 +1,5 @@
 import unittest
-from graphql import Parser, Operation
+from graphql import Parser, Operation, Fragment
 
 class TestGraphQL(unittest.TestCase):
     def test_basic(self):
@@ -267,6 +267,84 @@ class TestGraphQL(unittest.TestCase):
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[2].arguments_size, 1)
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[2].name, "profilePic")
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[2].arguments["size"].value, "devicePicSize")
+
+    def test_with_variables(self):
+        parser = Parser()
+        doc = parser.parse_query("""query getZuckProfile($devicePicSize: Int) {
+              user(id: 4) {
+                id
+                name
+                profilePic(size: $devicePicSize)
+              }
+            }
+        """)
+        self.assertEqual(doc.definitions_size, 1)
+        self.assertEqual(doc.definitions[0].operation, "query")
+        self.assertEqual(doc.definitions[0].name, "getZuckProfile")
+        self.assertEqual(doc.definitions[0].variables_size, 1)
+        self.assertEqual(doc.definitions[0].definitions[0].variable.value, "devicePicSize")
+        self.assertEqual(doc.definitions[0].definitions[0].type, "Int")
+        self.assertEqual(doc.definitions[0].directives_size, 0)
+        self.assertEqual(doc.definitions[0].selection_set.selection_set_size, 1)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].arguments_size, 1)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].arguments["id"], 4)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].name, "user")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.selection_set_size, 3)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].arguments_size, 0)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].name, "id")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[1].arguments_size, 0)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[1].name, "name")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[2].arguments_size, 1)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[2].name, "profilePic")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[2].arguments["size"].value, "devicePicSize")
+
+    def test_with_fragments(self):
+        parser = Parser()
+        doc = parser.parse_query("""query withFragments {
+              user(id: 4) {
+                friends(first: 10) {
+                  ...friendFields
+                }
+                mutualFriends(first: 10) {
+                  ...friendFields
+                }
+              }
+            }
+
+            fragment friendFields on User {
+              id
+              name
+              profilePic(size: 50)
+            }
+        """)
+        self.assertEqual(doc.definitions_size, 2)
+        self.assertIsInstance(doc.definitions[0], Operation)
+        self.assertEqual(doc.definitions[0].operation, "query")
+        self.assertEqual(doc.definitions[0].name, "withFragments")
+        self.assertEqual(doc.definitions[0].variables_size, 0)
+        self.assertEqual(doc.definitions[0].directives_size, 0)
+        self.assertEqual(doc.definitions[0].selection_set.selection_set_size, 1)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].arguments_size, 1)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].arguments["id"], 4)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].name, "user")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.selection_set_size, 2)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].arguments_size, 1)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].arguments, {"first": 10})
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].name, "friends")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].selection_set.selection_set_size, 1)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].selection_set.frags[0], "friendFields")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[1].arguments_size, 1)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].arguments, {"first": 10})
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[1].name, "mutualFriends")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[1].selection_set.frags[0], "friendFields")
+        self.assertIsInstance(doc.definitions[1], Fragment)
+        self.assertEqual(doc.definitions[1].name, "friendFields")
+        self.assertEqual(doc.definitions[1].selection_set.selection_set_size, 3)
+        self.assertEqual(doc.definitions[1].selection_set.fields[0].name, "id")
+        self.assertEqual(doc.definitions[1].selection_set.fields[1].name, "name")
+        self.assertEqual(doc.definitions[1].selection_set.fields[2].name, "profilePic")
+        self.assertEqual(doc.definitions[1].selection_set.fields[2].arguments_size, 1)
+        self.assertEqual(doc.definitions[1].selection_set.fields[2].arguments, {"size": 50})
 
 
 
