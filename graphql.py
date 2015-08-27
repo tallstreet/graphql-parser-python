@@ -375,7 +375,7 @@ class Parser():
         return self.document
 
 def main():
-    f = open("../../tests/relay-todo.graphql", 'r')
+    f = open("test/relay-todo.graphql", 'r')
     query = f.read()
     parser = Parser()
     document = parser.parse_query(query)
