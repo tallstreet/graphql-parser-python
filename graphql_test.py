@@ -493,6 +493,28 @@ class TestGraphQL(unittest.TestCase):
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[2].selection_set.fields[0].selection_set.fields[0].name, "count")
 
 
+    def test_with_directives(self):
+        parser = Parser()
+        doc = parser.parse_query("""query myQuery($someTest: Boolean) {
+                  experimentalField @skip(if: $someTest)
+                }
+        """)
+        self.assertEqual(doc.definitions_size, 1)
+        self.assertIsInstance(doc.definitions[0], Operation)
+        self.assertEqual(doc.definitions[0].operation, "query")
+        self.assertEqual(doc.definitions[0].name, "myQuery")
+        self.assertEqual(doc.definitions[0].variables_size, 1)
+        self.assertEqual(doc.definitions[0].definitions[0].variable.value, "someTest")
+        self.assertEqual(doc.definitions[0].definitions[0].type, "Boolean")
+        self.assertEqual(doc.definitions[0].directives_size, 0)
+        self.assertEqual(doc.definitions[0].selection_set.selection_set_size, 1)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].arguments_size, 0)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].name, "experimentalField")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].directives_size, 1)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].directives[0].name, "skip")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].directives[0].arguments["if"].value, "someTest")
+
+
     def xtest_kitchen_sink(self):
         parser = Parser()
         doc = parser.parse_query("""

@@ -50,14 +50,14 @@ class Operation(Definition):
 
 class Selection():
     def __init__(self):
-        self.directives = {}
+        self.directives = []
         self.selection_set = None
 
     def is_selection(self):
         return True
 
-    def add_directive(self, k, args):
-        self.directives[k] = args
+    def add_directive(self, k):
+        self.directives.append(k)
 
     def set_selection_set(self, s):
         self.selection_set = s
@@ -67,6 +67,7 @@ class SelectionSet(Selection):
         self.node = node
         self.fields = []
         self.frags = []
+        self.directives = []
         parent.set_selection_set(self)
 
     def add_field(self, field):
@@ -80,6 +81,7 @@ class Field(Selection):
         self.node = node
         self.selections = []
         self.arguments = {}
+        self.directives = []
         parent.add_field(self)
 
     def add_argument(self, name, value):
@@ -103,6 +105,15 @@ class VariableUsage():
     def __init__(self, node, value):
         self.node = node
         self.value = value
+
+class Directive():
+    def __init__(self, node, parent):
+        self.node = node
+        self.arguments = {}
+        parent.add_directive(self)
+
+    def add_argument(self, name, value):
+        self.arguments[name] = value
 
 class Value():
     def is_value(self):
@@ -177,7 +188,7 @@ class Parser():
         name = GraphQLAstField_get_name(node)
         self._nodes[-1].name = str(GraphQLAstName_get_value(name))
         self._nodes[-1].arguments_size = GraphQLAstField_get_arguments_size(node)
-        self._nodes[-1].directives = GraphQLAstField_get_directives_size(node)
+        self._nodes[-1].directives_size = GraphQLAstField_get_directives_size(node)
         #self._nodes[-1].selection_set = GraphQLAstField_get_selection_set(node)
         self.end_visit_node()
 
@@ -306,11 +317,14 @@ class Parser():
         self.visit_node({str(GraphQLAstName_get_value(name)): value})
 
     def process_visit_directive(self, node, unused):
+        self.visit_node(Directive(node, self._nodes[-1]))
         return True
 
     def process_end_visit_directive(self, node, unused):
         name = GraphQLAstDirective_get_name(node)
-        argument_size = GraphQLAstDirective_get_arguments_size(node)
+        self._nodes[-1].name = str(GraphQLAstName_get_value(name))
+        self._nodes[-1].argument_size = GraphQLAstDirective_get_arguments_size(node)
+        self.end_visit_node()
 
     def process_visit_named_type(self, node, unused):
         return False
