@@ -401,6 +401,54 @@ class TestGraphQL(unittest.TestCase):
         self.assertEqual(doc.definitions[2].selection_set.selection_set_size, 1)
         self.assertEqual(doc.definitions[2].selection_set.fields[0].name, "profilePic")
 
+    def test_with_type_conditions(self):
+        parser = Parser()
+        doc = parser.parse_query("""query FragmentTyping {
+              profiles(handles: ["zuck", "cocacola"]) {
+                handle
+                ...userFragment
+                ...pageFragment
+              }
+            }
+
+            fragment userFragment on User {
+              friends {
+                count
+              }
+            }
+
+            fragment pageFragment on Page {
+              likers {
+                count
+              }
+            }
+        """)
+        self.assertEqual(doc.definitions_size, 3)
+        self.assertIsInstance(doc.definitions[0], Operation)
+        self.assertEqual(doc.definitions[0].operation, "query")
+        self.assertEqual(doc.definitions[0].name, "FragmentTyping")
+        self.assertEqual(doc.definitions[0].variables_size, 0)
+        self.assertEqual(doc.definitions[0].directives_size, 0)
+        self.assertEqual(doc.definitions[0].selection_set.selection_set_size, 1)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].arguments_size, 1)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].arguments["handles"], ["zuck", "cocacola"])
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].name, "profiles")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.selection_set_size, 3)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].arguments_size, 0)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].name, "handle")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.frags[0], "userFragment")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.frags[1], "pageFragment")
+        self.assertIsInstance(doc.definitions[1], Fragment)
+        self.assertEqual(doc.definitions[1].name, "userFragment")
+        self.assertEqual(doc.definitions[1].condition, "User")
+        self.assertEqual(doc.definitions[1].selection_set.selection_set_size, 1)
+        self.assertEqual(doc.definitions[1].selection_set.fields[0].name, "friends")
+        self.assertIsInstance(doc.definitions[2], Fragment)
+        self.assertEqual(doc.definitions[2].name, "pageFragment")
+        self.assertEqual(doc.definitions[2].condition, "Page")
+        self.assertEqual(doc.definitions[2].selection_set.selection_set_size, 1)
+        self.assertEqual(doc.definitions[2].selection_set.fields[0].name, "likers")
+        
 
     def xtest_kitchen_sink(self):
         parser = Parser()

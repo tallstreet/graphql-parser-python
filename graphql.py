@@ -211,7 +211,9 @@ class Parser():
     def process_end_visit_fragment_definition(self, node, unused):
         name = GraphQLAstFragmentDefinition_get_name(node)
         self._nodes[-1].name = str(GraphQLAstName_get_value(name))
-        self._nodes[-1].condition = GraphQLAstFragmentDefinition_get_type_condition(node)
+        condition = GraphQLAstFragmentDefinition_get_type_condition(node)
+        condition_name = GraphQLAstNamedType_get_name(condition)
+        self._nodes[-1].condition = str(GraphQLAstName_get_value(condition_name))
         self._nodes[-1].directives_size = GraphQLAstFragmentDefinition_get_directives_size(node)
         #self._nodes[-1].selection_set = GraphQLAstFragmentDefinition_get_selection_set(node)
         self.end_visit_node()
