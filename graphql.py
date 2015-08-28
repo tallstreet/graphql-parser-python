@@ -85,16 +85,13 @@ class Field(Selection):
         parent.add_field(self)
 
     def add_argument(self, name, value):
-        self.arguments[name] = value
+        self.arguments[name] = value.value
 
 
 class Fragment(Selection):
     def __init__(self, node):
         self.node = node
-        # self.name = name
-        # self.directives = directives
-        # self.type_condition = type_condition
-        # self.selection_set = selection_set
+        self.directives = []
 
 class Variable(Definition):
     def __init__(self, node, parent):
@@ -113,9 +110,12 @@ class Directive():
         parent.add_directive(self)
 
     def add_argument(self, name, value):
-        self.arguments[name] = value
+        self.arguments[name] = value.value
 
 class Value():
+    def __init__(self, value):
+        self.value = value
+
     def is_value(self):
         return True
 
@@ -162,11 +162,16 @@ class Parser():
         return True
 
     def process_end_visit_variable_definition(self, node, unused):
+        if isinstance(self._nodes[-1], Value):
+            self._nodes[-3].default_value = self._nodes[-1].value
+            self.end_visit_node()
+            
         self._nodes[-2].variable = GraphQLAstVariableDefinition_get_variable(node)
         typeT = GraphQLAstVariableDefinition_get_type(node)
         typeName = GraphQLAstNamedType_get_name(typeT)
         self._nodes[-2].type = str(GraphQLAstName_get_value(typeName))
-        self._nodes[-2].default_value = GraphQLAstVariableDefinition_get_default_value(node)
+        #self._nodes[-2].default_value = GraphQLAstVariableDefinition_get_default_value(node)
+        #print self._nodes[-2].default_value
         self._nodes[-2].variable = self._nodes[-1]
         self.end_visit_node()
         self.end_visit_node()
@@ -253,35 +258,35 @@ class Parser():
 
     def process_end_visit_int_value(self, node, unused):
         value = GraphQLAstIntValue_get_value(node)
-        self.visit_node(int(value))
+        self.visit_node(Value(int(value)))
 
     def process_visit_float_value(self, node, unused):
         return True
 
     def process_end_visit_float_value(self, node, unused):
         value = GraphQLAstFloatValue_get_value(node)
-        self.visit_node(float(value))
+        self.visit_node(Value(float(value)))
 
     def process_visit_string_value(self, node, unused):
         return True
 
     def process_end_visit_string_value(self, node, unused):
         value = GraphQLAstStringValue_get_value(node)
-        self.visit_node(str(value))
+        self.visit_node(Value(str(value)))
 
     def process_visit_boolean_value(self, node, unused):
         return True
 
     def process_end_visit_boolean_value(self, node, unused):
         value = GraphQLAstBooleanValue_get_value(node)
-        self.visit_node(bool(value))
+        self.visit_node(Value(bool(value)))
 
     def process_visit_enum_value(self, node, unused):
         return True
 
     def process_end_visit_enum_value(self, node, unused):
         value = GraphQLAstEnumValue_get_value(node)
-        self.visit_node(str(value))
+        self.visit_node(Value(str(value)))
 
     def process_visit_array_value(self, node, unused):
         return True
@@ -290,10 +295,10 @@ class Parser():
         size = GraphQLAstArrayValue_get_values_size(node)
         data = []
         for i in range(size):
-            data.append(self._nodes[-1])
+            data.append(self._nodes[-1].value)
             self.end_visit_node()
         data.reverse()
-        self.visit_node(data)
+        self.visit_node(Value(data))
 
     def process_visit_object_value(self, node, unused):
         return True
@@ -304,7 +309,7 @@ class Parser():
         for i in range(size):
             data.update(self._nodes[-1])
             self.end_visit_node()
-        self.visit_node(data)
+        self.visit_node(Value(data))
 
     def process_visit_object_field(self, node, unused):
         return True
@@ -314,7 +319,7 @@ class Parser():
         #value = GraphQLAstObjectField_get_value(node)
         value = self._nodes[-1]
         self.end_visit_node()
-        self.visit_node({str(GraphQLAstName_get_value(name)): value})
+        self.visit_node({str(GraphQLAstName_get_value(name)): value.value})
 
     def process_visit_directive(self, node, unused):
         self.visit_node(Directive(node, self._nodes[-1]))

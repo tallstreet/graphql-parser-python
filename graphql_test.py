@@ -296,7 +296,7 @@ class TestGraphQL(unittest.TestCase):
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[1].name, "name")
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[2].arguments_size, 1)
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[2].name, "profilePic")
-        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[2].arguments["size"].value, "devicePicSize")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[2].arguments["size"], "devicePicSize")
 
     def test_with_fragments(self):
         parser = Parser()
@@ -512,13 +512,35 @@ class TestGraphQL(unittest.TestCase):
         self.assertEqual(doc.definitions[0].selection_set.fields[0].name, "experimentalField")
         self.assertEqual(doc.definitions[0].selection_set.fields[0].directives_size, 1)
         self.assertEqual(doc.definitions[0].selection_set.fields[0].directives[0].name, "skip")
-        self.assertEqual(doc.definitions[0].selection_set.fields[0].directives[0].arguments["if"].value, "someTest")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].directives[0].arguments["if"], "someTest")
+
+    def test_with_args_default(self):
+        parser = Parser()
+        doc = parser.parse_query("""query myQuery($someTest: Boolean = 1) {
+                  experimentalField @skip(if: $someTest)
+                }
+        """)
+        self.assertEqual(doc.definitions_size, 1)
+        self.assertIsInstance(doc.definitions[0], Operation)
+        self.assertEqual(doc.definitions[0].operation, "query")
+        self.assertEqual(doc.definitions[0].name, "myQuery")
+        self.assertEqual(doc.definitions[0].variables_size, 1)
+        self.assertEqual(doc.definitions[0].definitions[0].variable.value, "someTest")
+        self.assertEqual(doc.definitions[0].definitions[0].type, "Boolean")
+        self.assertEqual(doc.definitions[0].definitions[0].default_value, True)
+        self.assertEqual(doc.definitions[0].directives_size, 0)
+        self.assertEqual(doc.definitions[0].selection_set.selection_set_size, 1)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].arguments_size, 0)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].name, "experimentalField")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].directives_size, 1)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].directives[0].name, "skip")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].directives[0].arguments["if"], "someTest")
 
 
     def xtest_kitchen_sink(self):
         parser = Parser()
         doc = parser.parse_query("""
-        query queryName($foo: ComplexType, $site: Site = MOBILE) {
+        query queryName($foo: ComplexType, $site: Site) {
           whoever123is: node(id: [123, 456]) {
             id ,
             ... on User @defer {
@@ -535,8 +557,13 @@ class TestGraphQL(unittest.TestCase):
         """)
         self.assertEqual(doc.definitions_size, 1)
         self.assertEqual(doc.definitions[0].operation, "query")
-        self.assertEqual(doc.definitions[0].name, "RootQuery")
-        self.assertEqual(doc.definitions[0].variables_size, 0)
+        self.assertEqual(doc.definitions[0].name, "queryName")
+        self.assertEqual(doc.definitions[0].variables_size, 2)
+        self.assertEqual(doc.definitions[0].definitions[0].variable.value, "foo")
+        self.assertEqual(doc.definitions[0].definitions[0].type, "ComplexType")
+        # self.assertEqual(doc.definitions[0].definitions[1].variable.value, "site")
+        # self.assertEqual(doc.definitions[0].definitions[1].type, "Site")
+        # self.assertEqual(doc.definitions[0].definitions[1].default_value, "MOBILE")
         self.assertEqual(doc.definitions[0].directives_size, 0)
         self.assertEqual(doc.definitions[0].selection_set.selection_set_size, 1)
         self.assertEqual(doc.definitions[0].selection_set.fields[0].arguments_size, 1)
