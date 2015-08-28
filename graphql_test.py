@@ -572,7 +572,7 @@ class TestGraphQL(unittest.TestCase):
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[1].condition, "User")
         
 
-    def test_kitchen_sink(self):
+    def test_raises_exceptions(self):
         parser = Parser()
         with self.assertRaises(GraphQLException):
             doc = parser.parse_query("""
