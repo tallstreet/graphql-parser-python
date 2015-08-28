@@ -570,7 +570,21 @@ class TestGraphQL(unittest.TestCase):
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].arguments_size, 0)
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].name, "id")
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[1].condition, "User")
-        
+
+    def test_mutation(self):
+        parser = Parser()
+        doc = parser.parse_query("""
+            mutation likeStory {
+              like(story: 123) @defer {
+                story {
+                  id
+                }
+              }
+            }
+        """)
+        self.assertEqual(doc.definitions_size, 1)
+        self.assertEqual(doc.definitions[0].operation, "mutation")
+   
 
     def test_raises_exceptions(self):
         parser = Parser()
