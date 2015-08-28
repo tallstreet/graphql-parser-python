@@ -10,6 +10,9 @@ from ctypes import *
 from GraphQLParser import *
 import inspect
 
+class GraphQLException(Exception):
+    pass
+
 class Document():
     def __init__(self, node):
         self.node = node
@@ -409,7 +412,8 @@ class Parser():
             end_visit_name = end_visit_name_func(self.process_end_visit_name)
         )
         graphql_node_visit(ast, pointer(callbacks), None)
-
+        if error:
+            raise GraphQLException(string_at(error))
 
         graphql_node_free(ast)
         return self.document

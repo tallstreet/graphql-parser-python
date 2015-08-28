@@ -1,5 +1,5 @@
 import unittest
-from graphql import Parser, Operation, Fragment
+from graphql import Parser, Operation, Fragment, GraphQLException
 
 class TestGraphQL(unittest.TestCase):
     def test_basic(self):
@@ -570,6 +570,14 @@ class TestGraphQL(unittest.TestCase):
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].arguments_size, 0)
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].name, "id")
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[1].condition, "User")
+        
+
+    def test_kitchen_sink(self):
+        parser = Parser()
+        with self.assertRaises(GraphQLException):
+            doc = parser.parse_query("""
+                abcdef
+            """)
 
 if __name__ == '__main__':
     unittest.main()
