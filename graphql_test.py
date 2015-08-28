@@ -537,7 +537,7 @@ class TestGraphQL(unittest.TestCase):
         self.assertEqual(doc.definitions[0].selection_set.fields[0].directives[0].arguments["if"], "someTest")
 
 
-    def xtest_kitchen_sink(self):
+    def test_kitchen_sink(self):
         parser = Parser()
         doc = parser.parse_query("""
         query queryName($foo: ComplexType, $site: Site) {
@@ -561,26 +561,15 @@ class TestGraphQL(unittest.TestCase):
         self.assertEqual(doc.definitions[0].variables_size, 2)
         self.assertEqual(doc.definitions[0].definitions[0].variable.value, "foo")
         self.assertEqual(doc.definitions[0].definitions[0].type, "ComplexType")
-        # self.assertEqual(doc.definitions[0].definitions[1].variable.value, "site")
-        # self.assertEqual(doc.definitions[0].definitions[1].type, "Site")
-        # self.assertEqual(doc.definitions[0].definitions[1].default_value, "MOBILE")
         self.assertEqual(doc.definitions[0].directives_size, 0)
         self.assertEqual(doc.definitions[0].selection_set.selection_set_size, 1)
         self.assertEqual(doc.definitions[0].selection_set.fields[0].arguments_size, 1)
-        self.assertEqual(doc.definitions[0].selection_set.fields[0].arguments, {"id": 3500401})
-        self.assertEqual(doc.definitions[0].selection_set.fields[0].name, "user")
-        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.selection_set_size, 4)
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].arguments["id"], [123, 456])
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].name, "node")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.selection_set_size, 2)
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].arguments_size, 0)
         self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[0].name, "id")
-        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[1].name, "name")
-        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[2].name, "isViewerFriend")
-        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[3].name, "profilePicture")
-        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[3].arguments_size, 1)
-        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[3].arguments, {"size": 50})
-        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[3].selection_set.selection_set_size, 3)
-        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[3].selection_set.fields[0].name, "uri")
-        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[3].selection_set.fields[1].name, "width")
-        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[3].selection_set.fields[2].name, "height")
+        self.assertEqual(doc.definitions[0].selection_set.fields[0].selection_set.fields[1].condition, "User")
 
 if __name__ == '__main__':
     unittest.main()
