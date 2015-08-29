@@ -587,7 +587,7 @@ add_library_search_dirs(['..'])
 
 # Begin libraries
 
-_libs["graphqlparser"] = load_library("graphqlparser")
+_libs["graphqlparser"] = load_library("libgraphqlparser/libgraphqlparser")
 
 # 1 libraries
 # End libraries
@@ -1363,4 +1363,3 @@ GraphQLAstLocation = struct_GraphQLAstLocation # /Users/gary.roberts/Development
 GraphQLAstVisitorCallbacks = struct_GraphQLAstVisitorCallbacks # /Users/gary.roberts/Development/go/src/github.com/tallstreet/graphql/libgraphqlparser/c/GraphQLAstVisitor.h: 37
 
 # No inserted files
-

@@ -1,5 +1,5 @@
 import unittest
-from graphql import Parser, Operation, Fragment, GraphQLException
+from graphqlparser import Parser, Operation, Fragment, GraphQLException
 
 class TestGraphQL(unittest.TestCase):
     def test_basic(self):
