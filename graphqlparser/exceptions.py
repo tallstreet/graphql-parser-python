@@ -1,0 +1,2 @@
+class GraphQLException(Exception):
+    pass
