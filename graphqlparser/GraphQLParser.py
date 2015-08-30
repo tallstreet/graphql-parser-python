@@ -587,7 +587,7 @@ add_library_search_dirs(['..'])
 
 # Begin libraries
 
-_libs["graphqlparser"] = load_library("libgraphqlparser/libgraphqlparser")
+_libs["graphqlparser"] = load_library("libgraphqlparser")
 
 # 1 libraries
 # End libraries

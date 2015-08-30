@@ -10,7 +10,7 @@ except ImportError:
 
 os.environ['PYTHONDONTWRITEBYTECODE'] = '1'
 
-packages = ['graphql-parser']
+packages = ['graphqlparser']
 
 parser = Extension('parser',
                     define_macros = [('MAJOR_VERSION', '1'),
@@ -20,15 +20,18 @@ parser = Extension('parser',
                     library_dirs = ['/usr/local/lib'],
                     sources = [
                     'libgraphqlparser/Ast.cpp',
-                    'libgraphqlparser/JsonVisitor.cpp Ast.h AstVisitor.h',
-                    'libgraphqlparser/c/GraphQLAst.h',
+                    'libgraphqlparser/JsonVisitor.cpp',
+                    #'libgraphqlparserAst.h',
+                    #'libgraphqlparser/AstVisitor.h',
+                    #'libgraphqlparser/c/GraphQLAst.h',
                     'libgraphqlparser/c/GraphQLAst.cpp',
                     'libgraphqlparser/c/GraphQLAstNode.cpp',
-                    'libgraphqlparser/c/GraphQLAstForEachConcreteType.h',
-                    'libgraphqlparser/c/GraphQLAstVisitor.h',
+                    #'libgraphqlparser/c/GraphQLAstForEachConcreteType.h',
+                    #'libgraphqlparser/c/GraphQLAstVisitor.h',
                     'libgraphqlparser/c/GraphQLAstVisitor.cpp',
                     'libgraphqlparser/c/GraphQLParser.cpp',
-                    'libgraphqlparser/parser.tab.cpp parser.tab.hpp',
+                    'libgraphqlparser/parser.tab.cpp',
+                    #'libgraphqlparser/parser.tab.hpp',
                     'libgraphqlparser/lexer.cpp',
                     'libgraphqlparser/GraphQLParser.cpp'])
 
@@ -43,7 +46,7 @@ setup(
     packages=packages,
     license=open('LICENSE').read(),
     zip_safe=False,
-    ext_modules = [parser],
+    #ext_modules = [parser],
     classifiers=(
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',

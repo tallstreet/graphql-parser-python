@@ -7,7 +7,7 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 
 from ctypes import *
-from GraphQLParser import *
+from .GraphQLParser import *
 import inspect
 
 class GraphQLException(Exception):
@@ -419,11 +419,11 @@ class Parser():
         return self.document
 
 def main():
-    f = open("test/relay-todo.graphql", 'r')
+    f = open("tests/relay-todo.graphql", 'r')
     query = f.read()
     parser = Parser()
     document = parser.parse_query(query)
-    print document
+    print(document)
 
 if __name__ == '__main__':
     main()
